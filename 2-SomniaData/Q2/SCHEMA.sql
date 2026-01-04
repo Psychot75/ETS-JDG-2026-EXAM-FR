@@ -2,15 +2,28 @@
 -- SCHÉMA SQL - SOMNIA DATA
 -- ============================================================================
 
--- Création de la base de données
--- TODO
+DROP DATABASE IF EXISTS  somnia_core;
+CREATE DATABASE somnia_core;
+USE somnia_core;
+
+DROP TABLE IF EXISTS
+    users,
+    mattress_type,
+    mattress_softness,
+    sleeping_position,
+
+    user_sleep_profiles,
+    sleep_profiles_transactions_audits,
+
+    intervention_plans,
+    intervention_plans_transactions_audits,
+
+    intervention_plan_recommendations,
+    intervention_plan_recommendations_transactions_audits;
 
 -- ============================================================================
 -- TABLES PRINCIPALES
 -- ============================================================================
-
--- Création des tables
--- TODO
 CREATE TABLE users
 (
     id             INT PRIMARY KEY AUTO_INCREMENT,
@@ -31,8 +44,8 @@ CREATE TABLE mattress_type
 (
     id            INT PRIMARY KEY AUTO_INCREMENT,
 
-    type_name     varchar(255) NOT NULL,
-    type_desc     TEXT,
+    name     varchar(255) NOT NULL,
+    description     TEXT,
 
     creation_date TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_date   TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -53,8 +66,8 @@ CREATE TABLE sleeping_position
 (
     id            INT PRIMARY KEY AUTO_INCREMENT,
 
-    position_name varchar(255) NOT NULL,
-    position_desc TEXT,
+    name varchar(255) NOT NULL,
+    description TEXT,
 
     creation_date TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_date   TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -80,42 +93,33 @@ CREATE TABLE user_sleep_profiles
     FOREIGN KEY (sleeping_position_id) REFERENCES sleeping_position (id)
 );
 
-CREATE TABLE profiles_transactions_audits
+CREATE TABLE sleep_profiles_transactions_audits
 (
-    uuid                   BINARY(16) PRIMARY KEY                       DEFAULT (UUID_TO_BIN(UUID())),
+       id                         INT PRIMARY KEY AUTO_INCREMENT,
     transaction_type       ENUM ('INSERT', 'UPDATE', 'DELETE') NOT NULL,
     transaction_desc       TEXT,
     transaction_timestamp  TIMESTAMP                           NOT NULL DEFAULT CURRENT_TIMESTAMP,
     transaction_created_by VARCHAR(255)                        NOT NULL
 );
 
-CREATE TABLE intervention_plan_status
-(
-    id            INT PRIMARY KEY AUTO_INCREMENT,
-    status_name   varchar(255) NOT NULL,
-    status_desc   TEXT,
-
-    creation_date TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    update_date   TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
 CREATE TABLE intervention_plans
 (
     id            INT PRIMARY KEY AUTO_INCREMENT,
     number        INT UNIQUE,
+    user_sleep_profile_id INT NOT NULL,
     description   TEXT,
-    status_id     INT       NOT NULL,
+    status       ENUM ('ACTIVE', 'COMPLETED', 'AWAITING') NOT NULL,
 
     creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_date   TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (status_id) REFERENCES intervention_plan_status (id)
+    FOREIGN KEY (user_sleep_profile_id) REFERENCES user_sleep_profiles (id)
 
 );
 
 CREATE TABLE intervention_plans_transactions_audits
 (
-    uuid                   BINARY(16) PRIMARY KEY                       DEFAULT (UUID_TO_BIN(UUID())),
+       id                         INT PRIMARY KEY AUTO_INCREMENT,
     transaction_type       ENUM ('INSERT', 'UPDATE', 'DELETE') NOT NULL,
     transaction_desc       TEXT,
     transaction_timestamp  TIMESTAMP                           NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -128,6 +132,7 @@ CREATE TABLE intervention_plan_recommendations
     intervention_plan_id       INT UNIQUE,
     recommendation_name        varchar(255) NOT NULL,
     recommendation_description TEXT,
+    status       ENUM ('ACTIVE', 'COMPLETED', 'AWAITING') NOT NULL,
 
     creation_date              TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_date                TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -135,9 +140,9 @@ CREATE TABLE intervention_plan_recommendations
     FOREIGN KEY (intervention_plan_id) REFERENCES intervention_plans (id)
 );
 
-CREATE TABLE profiles_transactions_audits
+CREATE TABLE intervention_plan_recommendations_transactions_audits
 (
-    uuid                   BINARY(16) PRIMARY KEY                       DEFAULT (UUID_TO_BIN(UUID())),
+    id                         INT PRIMARY KEY AUTO_INCREMENT,
     transaction_type       ENUM ('INSERT', 'UPDATE', 'DELETE') NOT NULL,
     transaction_desc       TEXT,
     transaction_timestamp  TIMESTAMP                           NOT NULL DEFAULT CURRENT_TIMESTAMP,
